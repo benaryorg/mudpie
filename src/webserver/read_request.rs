@@ -2,7 +2,7 @@
 
 use std;
 use std::io;
-use std::ascii::OwnedAsciiExt; 
+use std::ascii::AsciiExt; 
 
 use super::WebRequest;
 use utils::genericsocket::GenericSocket;
@@ -110,7 +110,7 @@ fn needs_100_continue(req: &utils::http_request::Request) -> bool {
     if val.is_none() {
         return false;
     }
-    let val = val.unwrap().clone().into_ascii_lowercase();
+    let val = val.unwrap().clone().to_ascii_lowercase();
     if val == b"100-continue" {
         return true;
     } else {
@@ -129,8 +129,8 @@ fn read_until_headers_end(buffer: &mut Vec<u8>,
     // Craptastic new io copying; with_extra isn't supported yet
     // and is unsafe.
     let chunk_size = 4096;
-    let mut chunk_buff = Vec::with_capacity(chunk_size);
-    chunk_buff.resize(chunk_size, 0);
+    let mut chunk_buff = Vec::with_capacity(0);
+    chunk_buff.reserve_exact(chunk_size);
 
     loop { 
         // Try to read some more data
@@ -140,7 +140,7 @@ fn read_until_headers_end(buffer: &mut Vec<u8>,
                     io::ErrorKind::BrokenPipe,
                     "connection closed while reading request headers"));
         }
-        buffer.push_all(&chunk_buff[0..size]);
+        buffer.extend(&chunk_buff[0..size]);
 
         let split_pos = utils::byteutils::memmem(&buffer, b"\r\n\r\n");
         if split_pos.is_none() {
@@ -157,8 +157,8 @@ fn read_until_size(buffer: &mut Vec<u8>,
         stream: &mut GenericSocket, size: usize) -> Result<(), io::Error>
 {
     let chunk_size = 4096;
-    let mut chunk_buff = Vec::with_capacity(chunk_size);
-    chunk_buff.resize(chunk_size, 0);
+    let mut chunk_buff = Vec::with_capacity(0);
+    chunk_buff.reserve_exact(chunk_size);
 
     while buffer.len() < size {
         let size = try!(stream.read(&mut chunk_buff));
@@ -167,7 +167,7 @@ fn read_until_size(buffer: &mut Vec<u8>,
                     io::ErrorKind::BrokenPipe,
                     "connection closed while reading request body"));
         }
-        buffer.push_all(&chunk_buff[0..size]);
+        buffer.extend(&chunk_buff[0..size]);
     }
     return Ok(());
 }

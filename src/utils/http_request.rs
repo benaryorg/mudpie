@@ -2,7 +2,7 @@
 
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::ascii::OwnedAsciiExt; // the magic for into_ascii_lowercase
+use std::ascii::AsciiExt;
 
 use super::byteutils;
 
@@ -57,9 +57,9 @@ pub fn parse(request_bytes: &[u8]) -> Result<Request, ParseError> {
         return Err(ParseError::BadRequestLine);
     }
 
-    let method = request_parts[0].to_vec().into_ascii_lowercase();
+    let method = request_parts[0].to_vec().to_ascii_lowercase();
     let path = request_parts[1];  // NB: don't copy yet
-    let protocol = request_parts[2].to_vec().into_ascii_lowercase();
+    let protocol = request_parts[2].to_vec().to_ascii_lowercase();
 
     // Split doesn't coalesce spaces for us
     if method.is_empty() || path.is_empty() || protocol.is_empty() {
@@ -125,8 +125,8 @@ pub fn parse(request_bytes: &[u8]) -> Result<Request, ParseError> {
         }
 
         let mut nice_header_name = b"http_".to_vec();
-        nice_header_name.push_all(header_parts[0]);
-        let nice_header_name = nice_header_name.into_ascii_lowercase();
+        nice_header_name.extend(header_parts[0]);
+        let nice_header_name = nice_header_name.to_ascii_lowercase();
         
         // Strip optional whitespace around header value
         let header_value = byteutils::strip(header_parts[1]).to_vec();
@@ -138,8 +138,8 @@ pub fn parse(request_bytes: &[u8]) -> Result<Request, ParseError> {
                 entry.insert(header_value); 
             },
             Entry::Occupied(mut entry) => {
-                (*entry.get_mut()).push_all(b",");
-                (*entry.get_mut()).push_all(&header_value);
+                (*entry.get_mut()).extend(b",");
+                (*entry.get_mut()).extend(&header_value);
             }
         }
     }

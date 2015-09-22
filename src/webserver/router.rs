@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::ascii::OwnedAsciiExt;
+use std::ascii::AsciiExt;
 
 use super::PageFunction;
 use super::WebRequest;
@@ -87,7 +87,7 @@ fn parse_methods(methods: &str) -> Vec<String> {
     let parts = methods.split(",");
     let mut ret = Vec::new();
     for p in parts {
-        let method = p.trim().to_string().into_ascii_lowercase();
+        let method = p.trim().to_string().to_ascii_lowercase();
         ret.push(method);
     }
     return ret;

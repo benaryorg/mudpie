@@ -299,9 +299,10 @@ fn worker_thread_main(ctx: WorkerPrivateContext) {
 fn process_http_connection(ctx: &WorkerPrivateContext, 
         raw_stream: TcpStream, peer_addr: SocketAddr) {
 
+    // FIXME: not possible in 1.2 and deprecated in nightly
     // Set nodelay.  We write headers then body,
     // and don't want to stall.
-    raw_stream.set_nodelay(true).unwrap();
+    //raw_stream.set_nodelay(true).unwrap();
 
     let log: &Logger = &ctx.shared_ctx.logger;
 
@@ -367,7 +368,7 @@ fn process_http_connection(ctx: &WorkerPrivateContext,
             let mut resp = WebResponse::new();
             resp.set_code(405, "Method not allowed");
             resp.set_body_str("Error 405: Method not allowed");
-            let methods_joined = methods.join(", ");
+            let methods_joined = methods.connect(", ");
             resp.set_header("Allow", &methods_joined);
             write_response(&mut *stream, Some(&req), &resp, log);
             return;
